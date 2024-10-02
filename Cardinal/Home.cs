@@ -25,8 +25,11 @@ namespace Cardinal
             {
                 client = ConnectToOBS();
             }
-            hook.KeyPressed += UniversalKeyDownHandler;
-            hook.RegisterHotKey(global::ModifierKeys.Control, appSettings.FunctionKeyKey[appSettings.GetAppSettings(AppSettings.Settings.CaptureHotkey)]);
+            if (!string.IsNullOrEmpty(appSettings.GetAppSettings(AppSettings.Settings.CaptureHotkey)) && appSettings.GetAppSettings(AppSettings.Settings.UniversalHotkey) == "true")
+            {
+                hook.KeyPressed += UniversalKeyDownHandler;
+                hook.RegisterHotKey(global::ModifierKeys.Control, appSettings.FunctionKeyKey[appSettings.GetAppSettings(AppSettings.Settings.CaptureHotkey)]);
+            }
         }
 
         private void btnCaptureDeck_Click(object sender, EventArgs e)
