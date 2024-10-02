@@ -63,7 +63,10 @@ namespace Cardinal
         {
             string source = appSettings.GetAppSettings(AppSettings.Settings.Source);
             string filePath = SaveSourceScreenshot(client, source);
-            Jeremy(filePath);
+            if (filePath != null)
+            {
+                Jeremy(filePath);
+            }
         }
 
         private OBSWebsocket ConnectToOBS()
@@ -87,17 +90,27 @@ namespace Cardinal
         // Returns filepath if screenshot was saved, otherwise returns base64-encoded string
         private string SaveSourceScreenshot(OBSWebsocket client, string source)
         {
-            if (appSettings.GetAppSettings(AppSettings.Settings.SaveScreenshots) == "true")
+            if (string.IsNullOrEmpty(appSettings.GetAppSettings(AppSettings.Settings.Source)))
             {
-                string dateTime = DateTime.Now.ToString().Replace("/", "-").Replace(":", "").Replace(" ", "_");
-                string filePath = $"{AppSettings.screenshotsDirectory}{Path.DirectorySeparatorChar}cardinal_screenshot_{dateTime}.png";
-                client.SaveSourceScreenshot(source, "png", filePath);
-                lblScreenshotCapturedMessage.Text = $"Screenshot saved to {filePath}";
-                return filePath;
+                lblScreenshotCapturedMessage.ForeColor = Color.Red;
+                lblScreenshotCapturedMessage.Text = "Source is not set, go to Sources in the Settings menu to set your preferred source.";
+                lblScreenshotCapturedMessage.Refresh();
+                return null;
             }
             else
             {
-                return client.GetSourceScreenshot(source, "png");
+                if (appSettings.GetAppSettings(AppSettings.Settings.SaveScreenshots) == "true")
+                {
+                    string dateTime = DateTime.Now.ToString().Replace("/", "-").Replace(":", "").Replace(" ", "_");
+                    string filePath = $"{AppSettings.screenshotsDirectory}{Path.DirectorySeparatorChar}cardinal_screenshot_{dateTime}.png";
+                    client.SaveSourceScreenshot(source, "png", filePath);
+                    lblScreenshotCapturedMessage.Text = $"Screenshot saved to {filePath}";
+                    return filePath;
+                }
+                else
+                {
+                    return client.GetSourceScreenshot(source, "png");
+                }
             }
         }
 
