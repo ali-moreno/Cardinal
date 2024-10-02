@@ -36,12 +36,10 @@
             settingsDropdownToggleButton = new ToolStripDropDownButton();
             btnOpenSourceSettings = new ToolStripMenuItem();
             btnOpenConnectionSettings = new ToolStripMenuItem();
-            btnOpenHotkeySettings = new ToolStripMenuItem();
-            //cmbxSourceSelector = new ToolStripComboBox();
+            btnOpenCaptureSettings = new ToolStripMenuItem();
+            backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             toolStrip1.SuspendLayout();
             SuspendLayout();
-            this.KeyPreview = true;
-            this.KeyDown += new KeyEventHandler(this.KeyDownHandler);
             // 
             // btnCaptureDeck
             // 
@@ -51,7 +49,7 @@
             btnCaptureDeck.TabIndex = 0;
             btnCaptureDeck.Text = "Capture Deck";
             btnCaptureDeck.UseVisualStyleBackColor = true;
-            btnCaptureDeck.Click += this.btnCaptureDeck_Click;
+            btnCaptureDeck.Click += btnCaptureDeck_Click;
             // 
             // lblScreenshotCapturedMessage
             // 
@@ -64,14 +62,13 @@
             // lblJeremyCodeComplete
             // 
             lblJeremyCodeComplete.AutoSize = true;
-            lblJeremyCodeComplete.Location = new Point(12, 286);
+            lblJeremyCodeComplete.Location = new Point(332, 262);
             lblJeremyCodeComplete.Name = "lblJeremyCodeComplete";
             lblJeremyCodeComplete.Size = new Size(0, 15);
             lblJeremyCodeComplete.TabIndex = 2;
             // 
             // toolStrip1
             // 
-            //toolStrip1.Items.AddRange(new ToolStripItem[] { settingsDropdownToggleButton, cmbxSourceSelector });
             toolStrip1.Items.AddRange(new ToolStripItem[] { settingsDropdownToggleButton });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
@@ -81,7 +78,7 @@
             // 
             // settingsDropdownToggleButton
             // 
-            settingsDropdownToggleButton.DropDownItems.AddRange(new ToolStripItem[] { btnOpenSourceSettings, btnOpenConnectionSettings, btnOpenHotkeySettings });
+            settingsDropdownToggleButton.DropDownItems.AddRange(new ToolStripItem[] { btnOpenSourceSettings, btnOpenConnectionSettings, btnOpenCaptureSettings });
             settingsDropdownToggleButton.Image = (Image)resources.GetObject("settingsDropdownToggleButton.Image");
             settingsDropdownToggleButton.ImageTransparentColor = Color.Magenta;
             settingsDropdownToggleButton.Name = "settingsDropdownToggleButton";
@@ -93,30 +90,23 @@
             btnOpenSourceSettings.Name = "btnOpenSourceSettings";
             btnOpenSourceSettings.Size = new Size(197, 22);
             btnOpenSourceSettings.Text = "Sources";
-            btnOpenSourceSettings.Click += this.btnOpenSourceSettings_Click;
+            btnOpenSourceSettings.Click += btnOpenSourceSettings_Click;
             // 
             // btnOpenConnectionSettings
             // 
             btnOpenConnectionSettings.Name = "btnOpenConnectionSettings";
             btnOpenConnectionSettings.Size = new Size(197, 22);
             btnOpenConnectionSettings.Text = "Websocket Connection";
-            btnOpenConnectionSettings.Click += this.btnOpenConnectionSettings_Click;
+            btnOpenConnectionSettings.Click += btnOpenConnectionSettings_Click;
             // 
-            // btnOpenHotkeySettings
+            // btnOpenCaptureSettings
             // 
-            btnOpenHotkeySettings.Name = "btnOpenHotkeySettings";
-            btnOpenHotkeySettings.Size = new Size(197, 22);
-            btnOpenHotkeySettings.Text = "Hotkeys";
-            btnOpenHotkeySettings.Click += this.btnOpenHotkeySettings_Click;
-            //// 
-            //// cmbxSourceSelector
-            //// 
-            //cmbxSourceSelector.Name = "cmbxSourceSelector";
-            //cmbxSourceSelector.Size = new Size(121, 25);
-            //cmbxSourceSelector.Text = "Select Source";
-            //cmbxSourceSelector.SelectedIndexChanged += this.cmbxSourceSelector_Selection;
+            btnOpenCaptureSettings.Name = "btnOpenCaptureSettings";
+            btnOpenCaptureSettings.Size = new Size(197, 22);
+            btnOpenCaptureSettings.Text = "Capture Settings";
+            btnOpenCaptureSettings.Click += btnOpenCaptureSettings_Click;
             // 
-            // Form1
+            // Home
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -125,8 +115,10 @@
             Controls.Add(lblJeremyCodeComplete);
             Controls.Add(lblScreenshotCapturedMessage);
             Controls.Add(btnCaptureDeck);
-            Name = "Form1";
+            KeyPreview = true;
+            Name = "Home";
             Text = "TCGplayer Cardinal";
+            KeyDown += KeyDownHandler;
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
             ResumeLayout(false);
@@ -143,6 +135,7 @@
         private ToolStripDropDownButton settingsDropdownToggleButton;
         private ToolStripMenuItem btnOpenSourceSettings;
         private ToolStripMenuItem btnOpenConnectionSettings;
-        private ToolStripMenuItem btnOpenHotkeySettings;
+        private ToolStripMenuItem btnOpenCaptureSettings;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }

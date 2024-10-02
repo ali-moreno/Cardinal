@@ -1,6 +1,6 @@
 ﻿namespace Cardinal
 {
-    partial class Hotkeys
+    partial class CaptureSettings
     {
         /// <summary>
         /// Required designer variable.
@@ -32,6 +32,8 @@
             cmbxHotkeySelector = new ComboBox();
             universalHotkeyCheckbox = new CheckBox();
             lblUniversalHotkeyReminder = new Label();
+            chkSaveScreenshots = new CheckBox();
+            lblSaveScreenshots = new Label();
             SuspendLayout();
             // 
             // hotkeyLabel
@@ -72,17 +74,39 @@
             lblUniversalHotkeyReminder.TabIndex = 3;
             lblUniversalHotkeyReminder.Text = "Note: to use a universal hotkey, input Ctrl and your selected function key simultaneously";
             // 
-            // Hotkeys
+            // chkSaveScreenshots
+            // 
+            chkSaveScreenshots.AutoSize = true;
+            chkSaveScreenshots.Location = new Point(317, 108);
+            chkSaveScreenshots.Name = "chkSaveScreenshots";
+            chkSaveScreenshots.Size = new Size(173, 19);
+            chkSaveScreenshots.TabIndex = 4;
+            chkSaveScreenshots.Text = "Save Captured Screenshots?";
+            chkSaveScreenshots.UseVisualStyleBackColor = true;
+            chkSaveScreenshots.CheckedChanged += chkSaveScreenshots_Toggle;
+            // 
+            // lblSaveScreenshots
+            // 
+            lblSaveScreenshots.AutoSize = true;
+            lblSaveScreenshots.Location = new Point(87, 143);
+            lblSaveScreenshots.Name = "lblSaveScreenshots";
+            lblSaveScreenshots.Size = new Size(190, 15);
+            lblSaveScreenshots.TabIndex = 5;
+            lblSaveScreenshots.Text = "Note: screenshots can be found in ";
+            // 
+            // CaptureSettings
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(lblSaveScreenshots);
+            Controls.Add(chkSaveScreenshots);
             Controls.Add(lblUniversalHotkeyReminder);
             Controls.Add(universalHotkeyCheckbox);
             Controls.Add(cmbxHotkeySelector);
             Controls.Add(hotkeyLabel);
-            Name = "Hotkeys";
-            Text = "Hotkeys";
+            Name = "CaptureSettings";
+            Text = "Capture Settings";
             ResumeLayout(false);
             PerformLayout();
         }
@@ -93,5 +117,7 @@
         private ComboBox cmbxHotkeySelector;
         private CheckBox universalHotkeyCheckbox;
         private Label lblUniversalHotkeyReminder;
+        private CheckBox chkSaveScreenshots;
+        private Label lblSaveScreenshots;
     }
 }

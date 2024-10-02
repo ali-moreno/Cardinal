@@ -8,12 +8,11 @@ namespace Cardinal
     {
         private AppSettings appSettings;
 
-        public Sources()
+        public Sources(OBSWebsocket client)
         {
             InitializeComponent();
             appSettings = new AppSettings();
             cmbxSourceSelector.Text = string.IsNullOrEmpty(appSettings.GetAppSettings(AppSettings.Settings.Source)) ? "Select Source" : appSettings.GetAppSettings(AppSettings.Settings.Source);
-            OBSWebsocket client = new Home().client;
             GetSceneListInfo sceneList = client.GetSceneList();
             List<string> sceneNames = new List<string>();
             foreach (var scene in sceneList.Scenes)

@@ -1,4 +1,5 @@
 using Cardinal.Settings;
+using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
 using System.Text;
 
@@ -59,8 +60,7 @@ namespace Cardinal
         {
             string source = appSettings.GetAppSettings(AppSettings.Settings.Source);
             string filePath = SaveSourceScreenshot(client, source);
-            lblScreenshotCapturedMessage.Text = $"Screenshot saved to {filePath}";
-            //Jeremy(filePath);
+            Jeremy(filePath);
         }
 
         private OBSWebsocket ConnectToOBS()
@@ -81,43 +81,51 @@ namespace Cardinal
             return client;
         }
 
+        // Returns filepath if screenshot was saved, otherwise returns base64-encoded string
         private string SaveSourceScreenshot(OBSWebsocket client, string source)
         {
-            string dateTime = DateTime.Now.ToString().Replace("/", "-").Replace(":", "").Replace(" ", "_");
-            string filePath = $"{AppSettings.screenshotsDirectory}{Path.DirectorySeparatorChar}cardinal_screenshot_{dateTime}.png";
-            client.SaveSourceScreenshot(source, "png", filePath);
-            return filePath;
+            if (appSettings.GetAppSettings(AppSettings.Settings.SaveScreenshots) == "true")
+            {
+                string dateTime = DateTime.Now.ToString().Replace("/", "-").Replace(":", "").Replace(" ", "_");
+                string filePath = $"{AppSettings.screenshotsDirectory}{Path.DirectorySeparatorChar}cardinal_screenshot_{dateTime}.png";
+                client.SaveSourceScreenshot(source, "png", filePath);
+                lblScreenshotCapturedMessage.Text = $"Screenshot saved to {filePath}";
+                return filePath;
+            }
+            else
+            {
+                return client.GetSourceScreenshot(source, "png");
+            }
         }
 
-        private async void Jeremy(string imagePath)
+        private async void Jeremy(string imageString)
         {
-            string apiKey = "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";
-            //string imagePath = @"Untitled.png";
+            string apiKey = AppSettings.apiKey;
+            string prompt = AppSettings.llmPrompt;
 
-            string prompt = @"User input is a screenshot of a deck from Magic: the Gathering Online. Look at the visible card names, " +
-                "identify them, and count them. They are not guaranteed to be unique, so pay attention to duplicates and count the number of occurrences." +
-                "Ignore anything that isn't a main deck or sideboard card. This includes other visible cards outside those two domains, as well as any " +
-                "UI elements that aren't cards. Your response must be valid JSON, and nothing else. Even though you're looking at both " +
-                "the main deck and the sideboard, do not distinguish between them in your output. Your JSON response should be a list of tokens with " +
-                "two tokens each under them: 'name' for the card name, and 'count' for the number of times you see it, in the main deck and sideboard combined. " +
-                "Note that there will always be 60 cards in the main deck, and 15 cards in the sideboard, for a total of 75 cards. Make sure your response totals exactly 75 cards.";
-
-            // Function to encode the image
-            string EncodeImage(string path)
+            lblJeremyCodeComplete.Text = "Loading...";
+            lblJeremyCodeComplete.Refresh();
+            string base64Image;
+            if (appSettings.GetAppSettings(AppSettings.Settings.SaveScreenshots) == "true")
             {
-                byte[] imageBytes = File.ReadAllBytes(path);
-                return Convert.ToBase64String(imageBytes);
+                // Function to encode the image
+                string EncodeImage(string path)
+                {
+                    byte[] imageBytes = File.ReadAllBytes(path);
+                    return Convert.ToBase64String(imageBytes);
+                }
+                // Getting the base64 string
+                base64Image = EncodeImage(imageString);
             }
-
-            // Getting the base64 string
-            string base64Image = EncodeImage(imagePath);
-
+            else
+            {
+                base64Image = imageString.Replace("data:image/png;base64,", "");
+            }
             // Creating the HTTP client
             using (var client = new HttpClient())
             {
                 // Adding Authorization header
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-
                 // Creating the payload
                 var payload = $@"
                 {{
@@ -166,25 +174,58 @@ namespace Cardinal
                         }}
                     }}
                 }}";
-
                 // Creating the StringContent with JSON media type
                 var content = new StringContent(payload, Encoding.UTF8, "application/json");
-
                 // Sending the request
                 var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", content);
 
-                // Reading the response
-                string responseContent = await response.Content.ReadAsStringAsync();
-
-                lblJeremyCodeComplete.Text = $"Jeremy's code is complete!";
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    // Reading the response
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    JObject responseJson = JObject.Parse(responseContent);
+                    JToken temp = responseJson["choices"][0]["message"]["content"];
+                    List<JToken> cardList = JObject.Parse(temp.ToString())["cards"].ToList();
+                    // Send to backend
+                    using (HttpClient client2 = new HttpClient())
+                    {
+                        string url = "https://us-central1-team-cardinal-hackathon2024.cloudfunctions.net/handle_json";
+                        string jsonPayload = "[";
+                        cardList.ForEach(x =>
+                        {
+                            jsonPayload += $"{{\"card_name\": \"{x["card_name"]}\", \"card_count\":\"{x["card_count"]}\"}},";
+                        });
+                        // Trim last comma
+                        jsonPayload = jsonPayload.Remove(jsonPayload.Length - 1);
+                        jsonPayload += "]";
+                        //string jsonPayload = @"[{""card_name"": ""Force of Will"", ""card_count"": ""4""},{""card_name"": ""Brainstorm"", ""card_count"":""2""}]";
+                        StringContent content1 = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                        var response2 = await client2.PostAsync(url, content1);
+                        string responseContent2 = await response2.Content.ReadAsStringAsync();
+                        Console.WriteLine(responseContent2);
+                        Console.ReadLine();
+                        string JeremyPutBreakpointHere = "";
+                    }
+                    lblJeremyCodeComplete.Visible = true;
+                    lblJeremyCodeComplete.ForeColor = Color.Green;
+                    lblJeremyCodeComplete.Text = "Capture completed successfully!";
+                    lblJeremyCodeComplete.Refresh();
+                }
+                else
+                {
+                    lblJeremyCodeComplete.Visible = true;
+                    lblJeremyCodeComplete.ForeColor = Color.Red;
+                    lblJeremyCodeComplete.Text = $"ERROR: capture unsuccessful: OpenAI responded with {response.StatusCode}";
+                    lblJeremyCodeComplete.Refresh();
+                }
                 string AliPutBreakpointHere = "";
             }
         }
 
         private void btnOpenSourceSettings_Click(object sender, EventArgs e)
         {
-            Sources frm2 = new Sources();
-            frm2.ShowDialog();
+            Sources sources = new Sources(client);
+            sources.ShowDialog();
         }
 
         private void btnOpenConnectionSettings_Click(object sender, EventArgs e)
@@ -193,9 +234,9 @@ namespace Cardinal
             websocketConnection.ShowDialog();
         }
 
-        private void btnOpenHotkeySettings_Click(Object sender, EventArgs e)
+        private void btnOpenCaptureSettings_Click(Object sender, EventArgs e)
         {
-            Hotkeys hotkeys = new Hotkeys();
+            CaptureSettings hotkeys = new CaptureSettings();
             hotkeys.ShowDialog();
         }
     }
